@@ -57,24 +57,45 @@ function requestPlayerMatchHistory(){
 
 
 function requestMatchDetails(match_id) {
-  // const cache = JSON.parse(fs.readFileSync('./match_details.json', 'utf8'));
+  const cache = JSON.parse(fs.readFileSync('./match_details.json', 'utf8'));
+  const cache_match_id = new Long(cache.match_id.low, cache.match_id.high);
 
-  // if(cache.)
+  if(cache_match_id == match_id){
+    printPlayers(cache.players);
+  }
+  else{
+    dota2Client.requestMatchDetails(match_id, (result, response) => {
+      const players = response.match.players;
+      fs.writeFile('match_details.json', JSON.stringify(response.match));
 
-  dota2Client.requestMatchDetails(match_id, (result, response) => {
-    const players = response.match.players;
-    fs.writeFile('match_details.json', response.match)
+      printPlayers(players);
+    })
+  }
+}
 
-    for (player of players) {
-      const sid = SteamID.fromIndividualAccountID(player.account_id).getSteamID64();
-      const playing = isProfilePlaying(sid);
+function printPlayers(players){
+  const heroes = JSON.parse(fs.readFileSync('./heroes.json', 'utf8')).heroes;
 
-      if(playing){
-        console.log(chalk.green('Está jogando - %s'), player.player_name);
-      }
-      else{
-        console.log(chalk.red('Não está jogando - %s'), player.player_name);
-      }
+  players.forEach((player, index) => {
+    const sid = SteamID.fromIndividualAccountID(player.account_id).getSteamID64();
+    const playing = isProfilePlaying(sid);
+
+    if(index == 0){
+      console.log('\nRadiant');
+    }
+    else if(index == 5) {
+      console.log('\nDire')
+    }
+
+    const hero_name = heroes.filter((hero) => {
+      return hero.id == player.hero_id;
+    })[0];
+
+    if(playing){
+      console.log(chalk.green('Está jogando - %s [%s]'), player.player_name, hero_name.localized_name);
+    }
+    else{
+      console.log(chalk.red('Não está jogando - %s [%s]'), player.player_name, hero_name.localized_name);
     }
   })
 }
