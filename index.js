@@ -1,4 +1,5 @@
 const Steam = require('steam'),
+      dotenv = require('dotenv').config(),
       dota2 = require('dota2'),
       APIDota2 = require('dota2api'),
       SteamID = require('steamid'),
@@ -7,7 +8,7 @@ const Steam = require('steam'),
       fs = require('fs'),
       Long = require('long');
 
-global.config = require('./config');
+global.config = process.env;
 
 const steamClient = new Steam.SteamClient(),
       dota2Client = new dota2.Dota2Client(steamClient, true)
